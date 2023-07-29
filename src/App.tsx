@@ -22,24 +22,53 @@ const db = getDatabase(app);
 type Player = 'X' | 'O';
 
 const INITIAL_STATE: Player[] = Array(9).fill(null);
+// Example of two players
+const player1Sample: PlayerModel = {
+    id: '1',
+    name: 'John',
+    mark: 'O',
+};
+
+const player2Sample: PlayerModel = {
+    id: '2',
+    name: 'Jane',
+    mark: 'X',
+};
 
 const App: React.FC = () => {
+
     const [board, setBoard] = useState<Player[]>(INITIAL_STATE);
-    const [xIsNext, setXIsNext] = useState(true);
+    const [currentTurn, setCurrentTurn] = useState<PlayerModel>(player1Sample);
+    const [currentPlayer, setCurrentPlayer] = useState<PlayerModel>(player1Sample);
+    const [otherPlayer, setOtherPlayer] = useState<PlayerModel>(player2Sample);
+    useEffect(() => {
+        // Get the query parameters from the URL
+        const queryParams = new URLSearchParams(window.location.search);
+
+        // Check if player1 is set to 'true'
+        const isPlayer1 = queryParams.get('player1') === 'true';
+
+        // Set the player objects based on the query parameter values
+        setCurrentPlayer(isPlayer1?player1Sample:player2Sample);
+        setOtherPlayer(isPlayer1?player2Sample:player1Sample);
+    }, []);
+
 
     const handleClick = (index: number) => {
+        if(currentTurn == currentPlayer){
         if (calculateWinner(board) || board[index]) {
             return;
         }
-
         const newBoard = [...board];
-        newBoard[index] = xIsNext ? 'X' : 'O';
-        setBoard(newBoard);
-        setXIsNext(!xIsNext);
-        set(ref(db, 'hieu_game/' + '1'), {
+        newBoard[index] = currentTurn.mark === 'X' ? 'X' : 'O';
+        console.log('new board: ' + newBoard);
+
+        set(ref(db, 'hieu_game/' + '1'), JSON.parse( JSON.stringify({
             board: newBoard,
-            xIsNext: !xIsNext
-        }).then(r => console.log('saved to db'));
+            currentTurn: getNextTurnPlayer(currentTurn, currentPlayer, otherPlayer)
+        } ) )).then(r => {
+        });
+        }
 
     };
 
@@ -53,19 +82,37 @@ const App: React.FC = () => {
 
     const resetGame = () => {
         setBoard(INITIAL_STATE);
-        setXIsNext(true);
+        setCurrentTurn(player1Sample);
+        set(ref(db, 'hieu_game/' + '1'), {
+            board: INITIAL_STATE,
+            xIsNext: true
+        }).then(r => console.log('reset game'));
     };
 
     const winner = calculateWinner(board);
-    const status = winner ? `Winner: ${winner}` : `Next player: ${xIsNext ? 'X' : 'O'}`;
+    const status = winner ? `Winner: ${winner}` : `Next player: ${currentTurn ? 'X' : 'O'}`;
     // listen to changes in firebase db
     useEffect(() => {
         const dbRef = ref(db, 'hieu_game/' + '1');
         onValue(dbRef, (snapshot) => {
                 const data = snapshot.val();
-                console.log(data.board);
-                // setBoard(data.board);
-                // setXIsNext(data.xIsNext);
+                console.log('onValue');
+
+                // check if data != null then set state
+                if (data.board != null) {
+                    console.log('old board: ' + board);
+
+                    const arr = Array(length).fill(null); // Initialize the array with null values
+
+// Fill the array with values from the object
+                    Object.entries(data.board).forEach(([key, value]) => {
+                        arr[Number(key)] = value;
+                    });
+                    setBoard(arr);
+                    console.log('new board: ' + arr);
+
+                }
+                setCurrentTurn(data.xIsNext);
             }
         )
     }, []);
@@ -84,7 +131,10 @@ const App: React.FC = () => {
         </View>
     );
 };
-
+// get next turn player
+function getNextTurnPlayer(currentTurn: PlayerModel, player1: PlayerModel, player2: PlayerModel) {
+    return currentTurn === player1 ? player2 : player1;
+}
 // Helper function to calculate the winner
 function calculateWinner(board: Player[]) {
     const lines = [

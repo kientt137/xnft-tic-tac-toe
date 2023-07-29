@@ -6,7 +6,8 @@
     "start": "yarn build && npx xnft web",
     "bundle": "yarn build && npx xnft bundle",
     "dev": "BROWSER=none expo start --web & npx xnft --iframe http://localhost:19006",
-    "dev-win": "npx expo start --web & npx xnft --iframe http://localhost:19006"
+    "dev-win": "npx expo start --web & npx xnft --iframe http://localhost:19006",
+    "debug": "expo start --web"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.27.0",
