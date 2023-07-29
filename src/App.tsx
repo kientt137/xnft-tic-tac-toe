@@ -35,7 +35,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     try {
       const gameData = await joinGame(gameId, name);
-      const playerMark = gameData.players.length === 1 ? 'O' : 'X';
+      const playerMark = 'O';
       navigation.navigate('Game', { gameId: gameData.id, playerMark });
     } catch (error) {
       setError(error.message as string); // Use type assertion here
@@ -102,6 +102,11 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
       return;
     }
 
+    if (playerMark !== 'X' && gameData.xIsNext) {
+      // Player can only play if it's their turn
+      return;
+    }
+
     const newBoard = [...gameData.board];
     newBoard[index] = playerMark;
 
@@ -137,23 +142,17 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
   }
   
 
-  if (!gameData) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.status}>Loading...</Text>
-      </View>
-    );
-  }
-
-  // Now, the Tic-Tac-Toe board will only be rendered if the gameData is available.
-  const { players, board, xIsNext } = gameData;
-  const winner = calculateWinner(board);
-  const status = winner ? `Winner: ${winner}` : `Next player: ${xIsNext ? 'X' : 'O'}`;
+  const renderCellText = (mark: Player | null) => {
+    if (mark === null) {
+      return ''; // Display an empty string for null cells
+    } else {
+      return mark;
+    }
+  };
 
   return (
-    <View>
-      <Text>Tic-Tac-Toe Game</Text>
-      {/* Render the board here */}
+    <View style={styles.container}>
+      <Text style={styles.title}>Tic-Tac-Toe Game</Text>
       <View style={styles.boardContainer}>
         {gameData.board.map((mark, index) => (
           <TouchableOpacity
@@ -162,14 +161,13 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
             onPress={() => handleSquareClick(index)}
             disabled={!!mark || !!calculateWinner(gameData.board)}
           >
-            <Text style={styles.boardCellText}>{mark}</Text>
+            <Text style={styles.boardCellText}>{renderCellText(mark)}</Text>
           </TouchableOpacity>
         ))}
       </View>
     </View>
   );
 };
-
 const Stack = createStackNavigator();
 
 const App: React.FC = () => {
@@ -226,17 +224,12 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     width: 150,
   },
-  status: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  board: {
+  boardContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: 20,
   },
-  square: {
+  boardCell: {
     width: 100,
     height: 100,
     borderWidth: 1,
@@ -244,19 +237,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  squareText: {
+  boardCellText: {
     fontSize: 36,
-  },
-  resetButton: {
-    backgroundColor: '#007bff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginTop: 20,
-  },
-  resetButtonText: {
-    color: '#fff',
-    fontSize: 18,
   },
 });
 
