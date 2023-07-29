@@ -1,7 +1,9 @@
 import { registerRootComponent } from "expo";
-
+import { useEffect } from "react";
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { usePublicKeys, useSolanaConnection } from "./hooks/xnft-hooks";
+import { PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 type Player = 'X' | 'O';
 
@@ -10,6 +12,8 @@ const INITIAL_STATE: Player[] = Array(9).fill(null);
 const App: React.FC = () => {
   const [board, setBoard] = useState<Player[]>(INITIAL_STATE);
   const [xIsNext, setXIsNext] = useState(true);
+  const pks: any = usePublicKeys()
+  let pk = pks ? new PublicKey(pks?.solana) : undefined
 
   const handleClick = (index: number) => {
     if (calculateWinner(board) || board[index]) {
@@ -18,9 +22,34 @@ const App: React.FC = () => {
 
     const newBoard = [...board];
     newBoard[index] = xIsNext ? 'X' : 'O';
-
     setBoard(newBoard);
     setXIsNext(!xIsNext);
+    getUserInfo();
+  };
+
+   async function getUserInfo() {
+    try {
+      let url: string = "https://xnft-api-server.xnfts.dev/v1/users/fromPubkey?blockchain=solana&publicKey=" + pk?.toBase58();
+      console.log("VietBH" + url);
+
+      fetch(url)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json(); // Chuyển đổi dữ liệu nhận được thành đối tượng JSON
+        })
+        .then((data: APIResponse) => {
+          // Dữ liệu đã được chuyển đổi thành đối tượng TypeScript
+          console.log(data.user.id); // Output: "279b396c-f160-413e-b52a-62c356edefc6"
+          console.log(data.user.username); // Output: "tieunhi95215"
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+        });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   };
 
   const renderSquare = (index: number) => {
@@ -185,3 +214,14 @@ const styles = StyleSheet.create({
 // }
 
 export default registerRootComponent(App);
+
+// Khai báo class cho user
+interface User {
+  id: string;
+  username: string;
+}
+
+interface APIResponse {
+  user: User;
+}
+

@@ -1,15 +1,15 @@
 {
-  "name": "xNFT Tic toc toe",
+  "name": "Tic tac toe",
   "version": "0.0.1",
-  "storage": "",
-  "description": "App tic toc toe",
-  "website": "http://google.com",
+  "storage": "ipfs",
+  "description": "Game tic tac toe",
+
   "kind": "app",
   "price": 0,
   "icon": {
-    "md": "./assets/icon.png"
+    "md": "./assets/tic-tac-toe.png"
   },
-  "contact": "",
+  "contact": "dientv@rikkeisoft.com",
   "screenshots": [
     "./assets/screenShot.png"
   ],
