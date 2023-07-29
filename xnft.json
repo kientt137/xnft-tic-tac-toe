@@ -1,0 +1,21 @@
+{
+  "name": "xNFT Tic toc toe",
+  "version": "0.0.1",
+  "storage": "",
+  "description": "App tic toc toe",
+  "website": "http://google.com",
+  "kind": "app",
+  "price": 0,
+  "icon": {
+    "md": "./assets/icon.png"
+  },
+  "contact": "",
+  "screenshots": [
+    "./assets/screenShot.png"
+  ],
+  "entrypoints": {
+    "default": {
+      "web": "./web-build/index.html"
+    }
+  }
+}
