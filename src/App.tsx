@@ -80,6 +80,23 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
   const { gameId, playerMark } = route.params;
   const [gameData, setGameData] = useState<GameData | null>(null);
 
+  const isPlayerTurn = gameData && (gameData.xIsNext ? playerMark === 'X' : playerMark === 'O');
+
+  let winner: Player | null = null;
+  if (gameData && gameData.board) {
+    winner = calculateWinner(gameData.board);
+  }
+  let status: string;
+  if (winner) {
+    status = winner === playerMark ? 'You Win!' : 'You Lose!';
+  } else {
+    status = isPlayerTurn ? 'Your Turn' : 'Please Wait';
+  }
+
+  if (gameData && gameData.players.length === 1) {
+    status = "Wait for other player to join";
+  }
+
   useEffect(() => {
     const unsubscribe = subscribeToGameChanges(gameId, (data) => {
       setGameData(data);
@@ -104,6 +121,10 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
 
     if (playerMark !== 'X' && gameData.xIsNext) {
       // Player can only play if it's their turn
+      return;
+    }
+
+    if (gameData && gameData.players.length === 1) {
       return;
     }
 
@@ -153,6 +174,7 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tic-Tac-Toe Game</Text>
+      <Text sytle={styles.title}>Room ID: {gameData.id}</Text>
       <View style={styles.boardContainer}>
         {gameData.board.map((mark, index) => (
           <TouchableOpacity
@@ -165,6 +187,7 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
           </TouchableOpacity>
         ))}
       </View>
+      <Text>{status}</Text>
     </View>
   );
 };
