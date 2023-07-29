@@ -37,13 +37,21 @@ const App: React.FC = () => {
   };
 
   const winner = calculateWinner(board);
-  const status = winner ? `Winner: ${winner}` : `Next player: ${xIsNext ? 'X' : 'O'}`;
+  const status = winner ? winner : `Player ${xIsNext ? 'X' : 'O'} is move`;
 
   return (
     <View style={styles.container}>
       <Text style={styles.status}>{status}</Text>
-      <View style={styles.board}>
-        {Array.from({ length: 9 }).map((_, index) => renderSquare(index))}
+      <View style={styles.container_board}>
+        <View style={styles.board}>
+          {Array.from({ length: 3 }).map((_, index) => renderSquare(index))}
+        </View>
+        <View style={styles.board}>
+          {Array.from({ length: 3 }).map((_, index) => renderSquare(index + 3))}
+        </View>
+        <View style={styles.board}>
+          {Array.from({ length: 3 }).map((_, index) => renderSquare(index + 6))}
+        </View>
       </View>
       {winner && (
         <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
@@ -69,8 +77,18 @@ function calculateWinner(board: Player[]) {
 
   for (const [a, b, c] of lines) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return board[a];
+      return `The winner is ${board[a]}`;
     }
+  }
+
+  var isFull = true
+  for(const item of board) {
+    if(item == null) {
+      isFull = false
+    }
+  }
+  if (isFull) {
+    return "The game ends in a tie"
   }
 
   return null;
@@ -83,26 +101,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  container_board: {
+    borderWidth: 1,
+    borderColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   board: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 20,
   },
   square: {
     width: 100,
     height: 100,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
   },
   squareText: {
-    fontSize: 36,
+    fontSize: 50,
   },
   status: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 20,
   },
   resetButton: {
     backgroundColor: '#007bff',
@@ -116,72 +139,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-
-// const Tab = createBottomTabNavigator();
-
-// function TabNavigator() {
-//   return (
-//     <Tab.Navigator
-//       initialRouteName="Home"
-//       screenOptions={{
-//         tabBarActiveTintColor: "#e91e63",
-//       }}
-//     >
-//       <Tab.Screen
-//         name="Home"
-//         component={HomeScreen}
-//         options={{
-//           tabBarLabel: "Home",
-//           tabBarIcon: ({ color, size }) => (
-//             <MaterialCommunityIcons name="account" color={color} size={size} />
-//           ),
-//         }}
-//       />
-//       <Tab.Screen
-//         name="List"
-//         component={TokenListNavigator}
-//         options={{
-//           headerShown: false,
-//           tabBarLabel: "Tokens",
-//           tabBarIcon: ({ color, size }) => (
-//             <MaterialCommunityIcons name="bank" color={color} size={size} />
-//           ),
-//         }}
-//       />
-//       <Tab.Screen
-//         name="Examples"
-//         component={ExamplesScreens}
-//         options={{
-//           tabBarLabel: "Examples",
-//           tabBarIcon: ({ color, size }) => (
-//             <MaterialCommunityIcons name="home" color={color} size={size} />
-//           ),
-//         }}
-//       />
-//     </Tab.Navigator>
-//   );
-// }
-
-// function App() {
-//   let [fontsLoaded] = useFonts({
-//     Inter_900Black,
-//   });
-
-//   if (!fontsLoaded) {
-//     return (
-//       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-//         <ActivityIndicator />
-//       </View>
-//     );
-//   }
-
-//   return (
-//     <RecoilRoot>
-//       <NavigationContainer>
-//         <TabNavigator />
-//       </NavigationContainer>
-//     </RecoilRoot>
-//   );
-// }
 
 export default registerRootComponent(App);
