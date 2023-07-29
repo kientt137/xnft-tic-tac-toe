@@ -23,6 +23,7 @@
     "expo-linking": "~4.0.1",
     "expo-status-bar": "~1.4.4",
     "fast-glob": "^3.2.12",
+    "firebase": "^8.0.1",
     "glob": "^8.0.3",
     "jszip": "^3.10.1",
     "react": "18.2.0",

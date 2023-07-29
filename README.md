@@ -46,3 +46,11 @@ yarn start
 ```
 
 Once everything looks good head over to [xnft.gg](https://www.xnft.gg) to publish your xNFT!
+
+npx react-native set-env FIREBASE_API_KEY "AIzaSyDnwGa-J9sxuYX3ruhwxxLSzrspT4RpzrA"
+npx react-native set-env FIREBASE_AUTH_DOMAIN "xnft-tic-tac-toe.firebaseapp.com"
+npx react-native set-env FIREBASE_DATABASE_URL "https://xnft-tic-tac-toe-default-rtdb.asia-southeast1.firebasedatabase.app"
+npx react-native set-env FIREBASE_PROJECT_ID "xnft-tic-tac-toe"
+npx react-native set-env FIREBASE_STORAGE_BUCKET "xnft-tic-tac-toe.appspot.com"
+npx react-native set-env FIREBASE_MESSAGING_SENDER_ID "106096001346"
+npx react-native set-env FIREBASE_APP_ID "1:106096001346:web:b5acbd338ab9be9d2b08db"
