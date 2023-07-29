@@ -16,3 +16,8 @@ xnft-bundle.zip
 
 # macOS
 .DS_Store
+/.idea/.gitignore
+/manifest.zip
+/.idea/modules.xml
+/.idea/vcs.xml
+/.idea/xnft-tic-tac-toe.iml
