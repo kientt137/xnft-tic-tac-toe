@@ -7,6 +7,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createGame, joinGame, subscribeToGameChanges, updateGame, removeGameListener, GameData, Player } from './config/firebase';
 import { usePublicKeys, useSolanaConnection } from "./hooks/xnft-hooks";
 import { PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import axios, { AxiosRequestConfig } from 'axios';
+
+const abc :string = "4QMM9fYDDidp7LP9SzDtDZYvCazH4eahFhxLULAvyqFC";
 
 const INITIAL_STATE: Player[] = Array(9).fill(null);
 
@@ -22,37 +25,49 @@ interface APIResponse {
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [gameId, setGameId] = useState<string>('');
   const [name, setName] = useState<string>('');
+  const [nft, setNFT] = useState<string>();
   const [error, setError] = useState<string>(''); // Set the initial state as an empty string
   const pks: any = usePublicKeys()
   let pk = pks ? new PublicKey(pks?.solana) : undefined
 
-  async function getUserInfo() {
-      try {
-        let url: string = "https://xnft-api-server.xnfts.dev/v1/users/fromPubkey?blockchain=solana&publicKey=" + pk?.toBase58();
-        console.log("VietBH" + url);
+  useEffect(() => {
+        if(nft != abc){
+            setError("You don't have required NFT!");
+        }else{
+            setError(null);
+        }
+     }, [nft]);
+     useEffect(() => {
+        if(pk) {
+       fetchData1();
+       fetchData2();
+       }
+     }, [pk]);
 
-        fetch(url)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json(); // Chuyển đổi dữ liệu nhận được thành đối tượng JSON
-          })
-          .then((data: APIResponse) => {
-            // Dữ liệu đã được chuyển đổi thành đối tượng TypeScript
-            console.log(data.user.id); // Output: "279b396c-f160-413e-b52a-62c356edefc6"
-            console.log(data.user.username); // Output: "tieunhi95215"
-            setName(data.user.username);
-          })
-          .catch((error) => {
-            console.error('Error fetching data:', error);
-          });
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
+     const fetchData1 = async () => {
+         try {
+           const response = await axios.get( "https://api.shyft.to/sol/v1/wallet/collections?network=devnet&wallet_address=" + pk?.toBase58(), {
+             headers: {
+               'Content-Type': 'application/json', // Add your custom headers here
+               'x-api-key': 'sWutk90MOMuQwvRJ',
+             },
+           });
+           setNFT(response.data.result.collections[0].nfts[0].creators[0].address);
+         } catch (error) {
+         }
+       };
 
-    getUserInfo();
+       const fetchData2 = async () => {
+           try {
+                      const response = await axios.get( "https://xnft-api-server.xnfts.dev/v1/users/fromPubkey?blockchain=solana&publicKey=" + pk?.toBase58(), {
+                        headers: {
+                          'Content-Type': 'application/json', // Add your custom headers here
+                        },
+                      });
+                      setName(response.data.user.username);
+                    } catch (error) {
+                    }
+         };
 
   const handleCreateGame = async () => {
 
