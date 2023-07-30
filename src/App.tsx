@@ -5,19 +5,56 @@ import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-nativ
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createGame, joinGame, subscribeToGameChanges, updateGame, removeGameListener, GameData, Player } from './config/firebase';
+import { usePublicKeys, useSolanaConnection } from "./hooks/xnft-hooks";
+import { PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 const INITIAL_STATE: Player[] = Array(9).fill(null);
+
+interface User {
+  id: string;
+  username: string;
+}
+
+interface APIResponse {
+  user: User;
+}
 
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [gameId, setGameId] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [error, setError] = useState<string>(''); // Set the initial state as an empty string
+  const pks: any = usePublicKeys()
+  let pk = pks ? new PublicKey(pks?.solana) : undefined
+
+  async function getUserInfo() {
+      try {
+        let url: string = "https://xnft-api-server.xnfts.dev/v1/users/fromPubkey?blockchain=solana&publicKey=" + pk?.toBase58();
+        console.log("VietBH" + url);
+
+        fetch(url)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json(); // Chuyển đổi dữ liệu nhận được thành đối tượng JSON
+          })
+          .then((data: APIResponse) => {
+            // Dữ liệu đã được chuyển đổi thành đối tượng TypeScript
+            console.log(data.user.id); // Output: "279b396c-f160-413e-b52a-62c356edefc6"
+            console.log(data.user.username); // Output: "tieunhi95215"
+            setName(data.user.username);
+          })
+          .catch((error) => {
+            console.error('Error fetching data:', error);
+          });
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    getUserInfo();
 
   const handleCreateGame = async () => {
-    if (!name.trim()) {
-      setError('Please enter your name');
-      return;
-    }
 
     try {
       const gameData = await createGame(name);
@@ -29,7 +66,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const handleJoinGame = async () => {
     if (!name.trim() || !gameId.trim()) {
-      setError('Please enter your name and game ID');
+      setError('Please enter game ID');
       return;
     }
 
@@ -46,16 +83,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Tic-Tac-Toe Multiplayer</Text>
       <Text style={styles.error}>{error}</Text>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Enter Your Name:</Text>
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-          placeholder="Your Name"
-          autoCapitalize="none"
-        />
-      </View>
+     <Text style={styles.label}>Name: {name}</Text>
       <TouchableOpacity style={styles.button} onPress={handleCreateGame}>
         <Text style={styles.buttonText}>Create Game</Text>
       </TouchableOpacity>
