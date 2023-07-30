@@ -81,7 +81,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const handleJoinGame = async () => {
     if (!name.trim() || !gameId.trim()) {
-      setError('Please enter game ID');
+      setError('Please enter room ID');
       return;
     }
 
@@ -96,25 +96,25 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tic-Tac-Toe Multiplayer</Text>
-      <Text style={styles.error}>{error}</Text>
-     <Text style={styles.label}>Name: {name}</Text>
+      <Text style={styles.title}>Hi, {name}</Text>
+      <Text style={styles.space} />
       <TouchableOpacity style={styles.button} onPress={handleCreateGame}>
         <Text style={styles.buttonText}>Create Game</Text>
       </TouchableOpacity>
+      <Text style={styles.status}>or</Text>
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Enter Game ID:</Text>
         <TextInput
           style={styles.input}
           value={gameId}
           onChangeText={setGameId}
-          placeholder="Game ID"
+          placeholder="Input room ID"
           autoCapitalize="none"
         />
+        <TouchableOpacity style={styles.button} onPress={handleJoinGame}>
+          <Text style={styles.buttonText}>Join Game</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleJoinGame}>
-        <Text style={styles.buttonText}>Join Game</Text>
-      </TouchableOpacity>
+      <Text style={styles.error}>{error}</Text>
     </View>
   );
 };
@@ -125,13 +125,17 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
 
   const isPlayerTurn = gameData && (gameData.xIsNext ? playerMark === 'X' : playerMark === 'O');
 
-  let winner: Player | null = null;
+  let winner: Player | null | String = null;
   if (gameData && gameData.board) {
     winner = calculateWinner(gameData.board);
   }
   let status: string;
   if (winner) {
-    status = winner === playerMark ? 'You Win!' : 'You Lose!';
+    if (winner == "TIE") {
+      status = 'The game ends in a tie'
+    } else {
+      status = winner === playerMark ? 'You Win!' : 'You Lose!';
+    };
   } else {
     status = isPlayerTurn ? 'Your Turn' : 'Please Wait';
   }
@@ -180,7 +184,7 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
     });
   };
 
-  function calculateWinner(board: Player[]): Player | null {
+  function calculateWinner(board: Player[]): Player | null | String {
     if (!Array.isArray(board) || board.length !== 9) {
       return null; // Invalid board, cannot determine the winner
     }
@@ -201,6 +205,15 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
         return board[a];
       }
     }
+    var isFull = true
+    for (const item of board) {
+      if (item == null) {
+        isFull = false
+      }
+    }
+    if (isFull) {
+      return 'TIE'
+    }
 
     return null; // No winner
   }
@@ -214,23 +227,66 @@ const GameScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigati
     }
   };
 
+  const renderCell = (index: number) => {
+    if (gameData.board[index] == "X") {
+      return (<Text style={styles.boardCellText_X}>{renderCellText(gameData.board[index])}</Text>);
+    } else if (gameData.board[index] == "O") {
+      return (<Text style={styles.boardCellText_O}>{renderCellText(gameData.board[index])}</Text>);
+    } else {
+      return (<Text style={styles.boardCellText_X}>{renderCellText(gameData.board[index])}</Text>);
+    }
+  }
+
+  const renderSquare = (index: number) => {
+    return (
+      <TouchableOpacity
+        key={index}
+        style={styles.boardCell}
+        onPress={() => handleSquareClick(index)}
+        disabled={!!gameData.board[index] || !!calculateWinner(gameData.board)}
+      >
+        {renderCell(index)}
+      </TouchableOpacity>
+    );
+  };
+
+  const renderStatus = () => {
+    if (status == 'You Win!') {
+      return (
+        <Text style={styles.status_win}>{status}</Text>
+      );
+    } else if (status == 'You Lose!') {
+      return (
+        <Text style={styles.status_lose}>{status}</Text>
+      );
+    } else {
+      return (
+        <Text style={styles.status}>{status}</Text>
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tic-Tac-Toe Game</Text>
-      <Text sytle={styles.title}>Room ID: {gameData.id}</Text>
+      <Text style={styles.content}>Room ID: {gameData.id}</Text>
+      {
+        gameData.players.length == 2 ??
+        (
+          <Text style={styles.content}>{gameData.players[0].name} vs {gameData.players[1].name}</Text>
+        )
+      }
       <View style={styles.boardContainer}>
-        {gameData.board.map((mark, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.boardCell}
-            onPress={() => handleSquareClick(index)}
-            disabled={!!mark || !!calculateWinner(gameData.board)}
-          >
-            <Text style={styles.boardCellText}>{renderCellText(mark)}</Text>
-          </TouchableOpacity>
-        ))}
+        <View style={styles.board}>
+          {Array.from({ length: 3 }).map((_, index) => renderSquare(index))}
+        </View>
+        <View style={styles.board}>
+          {Array.from({ length: 3 }).map((_, index) => renderSquare(index + 3))}
+        </View>
+        <View style={styles.board}>
+          {Array.from({ length: 3 }).map((_, index) => renderSquare(index + 6))}
+        </View>
       </View>
-      <Text>{status}</Text>
+      {renderStatus()}
     </View>
   );
 };
@@ -254,10 +310,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  space: {
+    marginTop: 10,
+    marginBottom: 10
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginTop: 20,
+  },
+  content: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginTop: 20,
+  },
+  status_win: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    color: 'blue',
+  },
+  status_lose: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    color: 'red',
+  },
+  status: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
   },
   error: {
     color: 'red',
@@ -268,7 +350,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-    marginBottom: 10,
+    marginStart: 20
   },
   buttonText: {
     color: '#fff',
@@ -278,6 +360,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+    marginTop: 20,
   },
   label: {
     fontSize: 16,
@@ -289,22 +372,37 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     width: 150,
+    fontSize: 18,
   },
   boardContainer: {
+    borderWidth: 1,
+    borderColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20
+  },
+  board: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 20,
   },
   boardCell: {
     width: 100,
     height: 100,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
   },
   boardCellText: {
-    fontSize: 36,
+    fontSize: 48,
+  },
+  boardCellText_X: {
+    fontSize: 48,
+    color: 'green'
+  },
+  boardCellText_O: {
+    fontSize: 48,
+    color: 'red'
   },
 });
 
